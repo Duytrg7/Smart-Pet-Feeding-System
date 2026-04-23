@@ -1,0 +1,415 @@
+:root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --border: #2a2d3a;
+    --accent: #6ee7b7;
+    --accent2: #38bdf8;
+    --accent3: #f59e0b;
+    --danger: #f87171;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --radius: 14px;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    padding: 24px 16px 48px;
+}
+
+/* ── HEADER ── */
+header {
+    text-align: center;
+    margin-bottom: 32px;
+}
+
+header h1 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+}
+
+header p {
+    color: var(--muted);
+    font-size: 0.85rem;
+    margin-top: 4px;
+}
+
+/* ── GRID ── */
+.grid {
+    display: grid;
+    gap: 16px;
+    max-width: 480px;
+    margin: 0 auto;
+}
+
+/* ── CARD ── */
+.card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+}
+
+.card-title {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    margin-bottom: 16px;
+}
+
+/* ── WEIGHT ── */
+.weight-value {
+    font-family: 'DM Mono', monospace;
+    font-size: 3rem;
+    font-weight: 500;
+    color: var(--accent);
+    line-height: 1;
+}
+
+.weight-unit {
+    font-size: 1rem;
+    color: var(--muted);
+    margin-left: 6px;
+}
+
+.food-state {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 10px;
+    font-size: 0.82rem;
+    color: var(--muted);
+}
+
+.dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+}
+
+.dot.empty {
+    background: var(--danger);
+}
+
+/* ── ALERT ── */
+.alert {
+    display: none;
+    align-items: center;
+    gap: 10px;
+    background: rgba(248, 113, 113, 0.1);
+    border: 1px solid rgba(248, 113, 113, 0.3);
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 0.85rem;
+    color: var(--danger);
+}
+
+.alert.show {
+    display: flex;
+}
+
+/* ── SCHEDULE ── */
+.meal-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+}
+
+.meal-row:last-child {
+    border-bottom: none;
+}
+
+.meal-label {
+    font-size: 0.88rem;
+    color: var(--muted);
+}
+
+.time-input {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.9rem;
+    padding: 6px 10px;
+    width: 130px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.time-input:focus {
+    border-color: var(--accent);
+}
+
+/* ── BUTTONS ── */
+.btn {
+    width: 100%;
+    padding: 13px;
+    border: none;
+    border-radius: 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.1s;
+}
+
+.btn:active {
+    transform: scale(0.98);
+}
+
+.btn-primary {
+    background: var(--accent);
+    color: #0f1117;
+}
+
+.btn-secondary {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    margin-top: 8px;
+}
+
+.btn-amber {
+    background: var(--accent3);
+    color: #0f1117;
+}
+
+.btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+/* ── STATUS ── */
+.status-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.82rem;
+    color: var(--muted);
+    margin-top: 12px;
+}
+
+.last-fed {
+    font-family: 'DM Mono', monospace;
+    font-size: 1.1rem;
+    color: var(--accent2);
+}
+
+/* ── FEEDING ANIM ── */
+@keyframes pulse {
+
+    0%,
+    100% {
+        opacity: 1
+    }
+
+    50% {
+        opacity: 0.4
+    }
+}
+
+.feeding-indicator {
+    display: none;
+    font-size: 0.8rem;
+    color: var(--accent);
+    animation: pulse 1s infinite;
+    margin-top: 8px;
+    text-align: center;
+}
+
+.feeding-indicator.show {
+    display: block;
+}
+
+/* ── DIET ANALYSIS ── */
+.input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.input-label {
+    font-size: 0.8rem;
+    color: var(--muted);
+    margin-bottom: 4px;
+}
+
+.input-field {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    padding: 10px 12px;
+    width: 100%;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.input-field:focus {
+    border-color: var(--accent3);
+}
+
+select.input-field {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 32px;
+    cursor: pointer;
+}
+
+select.input-field option {
+    background: #1a1d27;
+}
+
+.custom-kcal {
+    display: none;
+    margin-top: 8px;
+}
+
+.custom-kcal.show {
+    display: block;
+}
+
+/* ── RESULT ── */
+.result-box {
+    display: none;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 16px;
+    padding: 16px;
+    background: rgba(110, 231, 183, 0.05);
+    border: 1px solid rgba(110, 231, 183, 0.2);
+    border-radius: 10px;
+}
+
+.result-box.show {
+    display: flex;
+}
+
+.result-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.88rem;
+}
+
+.result-label {
+    color: var(--muted);
+}
+
+.result-value {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.95rem;
+    color: var(--accent);
+    font-weight: 500;
+}
+
+.result-divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 4px 0;
+}
+
+/* ── SCHEDULE HINT ── */
+.schedule-hint {
+    display: none;
+    margin-top: 12px;
+    padding: 12px;
+    background: rgba(56, 189, 248, 0.07);
+    border: 1px solid rgba(56, 189, 248, 0.2);
+    border-radius: 10px;
+    font-size: 0.83rem;
+    color: var(--accent2);
+    line-height: 1.6;
+}
+
+.schedule-hint.show {
+    display: block;
+}
+
+.hint-title {
+    font-weight: 600;
+    margin-bottom: 6px;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--accent2);
+}
+
+/* ── GOAL BADGE ── */
+.goal-badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.goal-increase {
+    background: rgba(110, 231, 183, 0.15);
+    color: var(--accent);
+}
+
+.goal-maintain {
+    background: rgba(56, 189, 248, 0.15);
+    color: var(--accent2);
+}
+
+.goal-decrease {
+    background: rgba(248, 113, 113, 0.15);
+    color: var(--danger);
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(6px)
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0)
+    }
+}
+
+.result-box.show,
+.schedule-hint.show {
+    animation: fadeIn 0.3s ease;
+}
+
+/* ── CHỈNH SỬA ICON ĐỒNG HỒ CHO THẺ TIME ── */
+.time-input::-webkit-calendar-picker-indicator {
+    /* 1. Đổi màu icon từ đen sang trắng ngà (gần giống var(--text)) */
+    filter: invert(0.8);
+    cursor: pointer;
+
+    /* 2. Tạo đường vạch dọc ngăn cách */
+    border-left: 1px solid var(--border);
+    padding-left: 8px;
+    /* Khoảng cách từ vạch đến icon */
+    margin-left: 8px;
+    /* Khoảng cách từ số giờ đến vạch */
+}
+
+/* Thêm hiệu ứng sáng lên một chút khi di chuột vào icon */
+.time-input::-webkit-calendar-picker-indicator:hover {
+    filter: invert(1);
+}
