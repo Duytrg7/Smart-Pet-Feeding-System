@@ -145,14 +145,19 @@ header p {
     color: var(--text);
     font-family: 'DM Mono', monospace;
     font-size: 0.9rem;
-    padding: 6px 10px;
+
+    padding: 6px 0 6px 10px;
     width: 130px;
     outline: none;
     transition: border-color 0.2s;
+    overflow: hidden;
+
+    color-scheme: dark;
 }
 
 .time-input:focus {
     border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(110, 231, 183, 0.2);
 }
 
 /* ── BUTTONS ── */
@@ -397,19 +402,24 @@ select.input-field option {
 
 /* ── CHỈNH SỬA ICON ĐỒNG HỒ CHO THẺ TIME ── */
 .time-input::-webkit-calendar-picker-indicator {
-    /* 1. Đổi màu icon từ đen sang trắng ngà (gần giống var(--text)) */
-    filter: invert(0.8);
     cursor: pointer;
 
-    /* 2. Tạo đường vạch dọc ngăn cách */
+    padding: 8px 10px 8px 10px;
+
+    margin: -6px 0 -6px 8px;
+
     border-left: 1px solid var(--border);
-    padding-left: 8px;
-    /* Khoảng cách từ vạch đến icon */
-    margin-left: 8px;
-    /* Khoảng cách từ số giờ đến vạch */
+    transition: background-color 0.2s ease, transform 0.1s;
 }
 
-/* Thêm hiệu ứng sáng lên một chút khi di chuột vào icon */
+.time-input:focus::-webkit-calendar-picker-indicator {
+    border-left-color: var(--accent);
+}
+
 .time-input::-webkit-calendar-picker-indicator:hover {
-    filter: invert(1);
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.time-input::-webkit-calendar-picker-indicator:active {
+    padding: 9.5px 10px 6.5px 10px;
 }
