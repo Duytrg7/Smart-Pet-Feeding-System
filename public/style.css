@@ -170,11 +170,8 @@ header p {
     font-size: 0.9rem;
     font-weight: 600;
     cursor: pointer;
-    transition: opacity 0.2s, transform 0.1s;
-}
-
-.btn:active {
-    transform: scale(0.98);
+    transition: transform 0.2s ease-in-out, filter 0.2s, box-shadow 0.2s;
+    backface-visibility: hidden;
 }
 
 .btn-primary {
@@ -194,9 +191,31 @@ header p {
     color: #0f1117;
 }
 
+.btn:hover:not(:disabled) {
+    transform: scale(1.04);
+    filter: brightness(1.1);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+}
+
+.btn-amber:hover:not(:disabled) {
+    box-shadow: 0 6px 20px rgba(245, 158, 11, 0.2);
+}
+
+.btn-primary:hover:not(:disabled) {
+    box-shadow: 0 6px 20px rgba(110, 231, 183, 0.2);
+}
+
+.btn:active:not(:disabled) {
+    transform: scale(0.96);
+    filter: brightness(0.9);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
 .btn:disabled {
     opacity: 0.4;
     cursor: not-allowed;
+    transform: scale(1) !important;
+    box-shadow: none !important;
 }
 
 /* ── STATUS ── */
