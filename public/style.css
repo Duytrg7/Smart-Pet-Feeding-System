@@ -163,14 +163,19 @@ header p {
 /* ── BUTTONS ── */
 .btn {
     width: 100%;
-    padding: 13px;
+
+    height: 46px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
     border: none;
     border-radius: 10px;
     font-family: 'DM Sans', sans-serif;
     font-size: 0.9rem;
     font-weight: 600;
     cursor: pointer;
-    transition: transform 0.2s ease-in-out, filter 0.2s, box-shadow 0.2s;
+    transition: transform 0.2s ease-in-out, filter 0.2s, box-shadow 0.2s, font-size 0.2s ease-in-out;
     backface-visibility: hidden;
 }
 
@@ -192,7 +197,7 @@ header p {
 }
 
 .btn:hover:not(:disabled) {
-    transform: scale(1.04);
+    font-size: 0.96rem;
     filter: brightness(1.1);
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
 }
