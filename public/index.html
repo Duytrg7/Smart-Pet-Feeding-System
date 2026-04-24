@@ -14,7 +14,7 @@
 <body>
 
   <header>
-    <h1>Pet Feeder</h1>
+    <h1>🐾 Pet Feeder</h1>
     <p id="conn-status">Đang kết nối...</p>
   </header>
 
@@ -153,10 +153,16 @@
 
   <!-- Firebase SDK -->
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    // ── 1. Import tất cả lên đầu ──
+    import { initializeApp }
+      from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import { getDatabase, ref, onValue, set, get }
       from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+    import { getAuth, signInAnonymously }
+      from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
+    // ── 2. Config Firebase ──
+    // ⚠️ THAY THẾ BẰNG CONFIG CỦA BẠN
     const firebaseConfig = {
       apiKey: "AIzaSyBbpnoW05GoA9VKAV8TN3RElogo5AFeSI8",
       authDomain: "pet-feeder-d21fd.firebaseapp.com",
@@ -167,108 +173,139 @@
       appId: "1:127825167634:web:7dab185433e69abff45fcb"
     };
 
+    // ── 3. Khởi tạo ──
     const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
     const db = getDatabase(app);
     const $ = id => document.getElementById(id);
 
-    window._db = db;
-    window._ref = ref;
+    // ── 4. Đăng nhập ẩn danh TRƯỚC, rồi mới setup toàn bộ app ──
+    signInAnonymously(auth)
+      .then(() => {
+        console.log('[AUTH] Signed in anonymously');
+        setupApp();
+      })
+      .catch(err => {
+        console.error('[AUTH] Error:', err);
+        $('conn-status').textContent = 'Lỗi xác thực';
+        $('conn-status').style.color = 'var(--danger)';
+      });
 
-    onValue(ref(db, '.info/connected'), snap => {
-      $('conn-status').textContent = snap.val() ? 'Đã kết nối' : 'Mất kết nối';
-      $('conn-status').style.color = snap.val() ? 'var(--accent)' : 'var(--danger)';
-    });
+    function setupApp() {
 
-    onValue(ref(db, 'petfeeder/status/weight'), snap => {
-      const w = snap.val();
-      if (w === null) return;
-      $('weight-val').textContent = parseFloat(w).toFixed(1);
-    });
+      // ── Trạng thái kết nối ──
+      onValue(ref(db, '.info/connected'), snap => {
+        $('conn-status').textContent = snap.val() ? 'Đã kết nối' : 'Mất kết nối';
+        $('conn-status').style.color = snap.val() ? 'var(--accent)' : 'var(--danger)';
+      });
 
-    onValue(ref(db, 'petfeeder/status/foodState'), snap => {
-      const s = snap.val();
-      if (s === 'PRESENT') {
-        $('food-dot').className = 'dot';
-        $('food-state-text').textContent = 'Còn thức ăn';
-        $('alert-empty').classList.remove('show');
-      } else if (s === 'EMPTY') {
-        $('food-dot').className = 'dot empty';
-        $('food-state-text').textContent = 'Hết thức ăn';
-        $('alert-empty').classList.add('show');
-      } else {
-        $('food-state-text').textContent = 'Chưa xác định';
-      }
-    });
+      // ── Cân nặng thức ăn ──
+      onValue(ref(db, 'petfeeder/status/weight'), snap => {
+        const w = snap.val();
+        if (w === null) return;
+        $('weight-val').textContent = parseFloat(w).toFixed(1);
+      });
 
-    onValue(ref(db, 'petfeeder/status/lastFed'), snap => {
-      $('last-fed-val').textContent = snap.val() || '--:--';
-    });
+      // ── Trạng thái thức ăn ──
+      onValue(ref(db, 'petfeeder/status/foodState'), snap => {
+        const s = snap.val();
+        if (s === 'PRESENT') {
+          $('food-dot').className = 'dot';
+          $('food-state-text').textContent = 'Còn thức ăn';
+          $('alert-empty').classList.remove('show');
+        } else if (s === 'EMPTY') {
+          $('food-dot').className = 'dot empty';
+          $('food-state-text').textContent = 'Hết thức ăn';
+          $('alert-empty').classList.add('show');
+        } else {
+          $('food-state-text').textContent = 'Chưa xác định';
+        }
+      });
 
-    onValue(ref(db, 'petfeeder/schedule'), snap => {
-      const data = snap.val();
-      if (!data) return;
-      if (data.feed0) $('time0').value = `${String(data.feed0.hour).padStart(2, '0')}:${String(data.feed0.minute).padStart(2, '0')}`;
-      if (data.feed1) $('time1').value = `${String(data.feed1.hour).padStart(2, '0')}:${String(data.feed1.minute).padStart(2, '0')}`;
-      $('schedule-display').textContent = `${$('time0').value || '--:--'} / ${$('time1').value || '--:--'}`;
-    });
+      // ── Lần cho ăn gần nhất ──
+      onValue(ref(db, 'petfeeder/status/lastFed'), snap => {
+        $('last-fed-val').textContent = snap.val() || '--:--';
+      });
 
-    $('btn-save').addEventListener('click', async () => {
-      const t0 = $('time0').value, t1 = $('time1').value;
-      if (!t0 || !t1) {
-        $('save-status').textContent = 'Vui lòng chọn đủ 2 giờ';
-        $('save-status').style.color = 'var(--danger)'; return;
-      }
-      const [h0, m0] = t0.split(':').map(Number);
-      const [h1, m1] = t1.split(':').map(Number);
-      $('btn-save').disabled = true;
-      $('save-status').textContent = 'Đang lưu...';
-      $('save-status').style.color = 'var(--muted)';
-      try {
-        await set(ref(db, 'petfeeder/schedule'), {
-          feed0: { hour: h0, minute: m0 },
-          feed1: { hour: h1, minute: m1 }
-        });
-        $('save-status').textContent = '✓ Đã lưu';
-        $('save-status').style.color = 'var(--accent)';
-        $('schedule-display').textContent = `${t0} / ${t1}`;
-      } catch (e) {
-        $('save-status').textContent = 'Lỗi!';
-        $('save-status').style.color = 'var(--danger)';
-      }
-      $('btn-save').disabled = false;
-    });
+      // ── Load lịch cho ăn ──
+      onValue(ref(db, 'petfeeder/schedule'), snap => {
+        const data = snap.val();
+        if (!data) return;
+        if (data.feed0) {
+          $('time0').value = `${String(data.feed0.hour).padStart(2, '0')}:${String(data.feed0.minute).padStart(2, '0')}`;
+        }
+        if (data.feed1) {
+          $('time1').value = `${String(data.feed1.hour).padStart(2, '0')}:${String(data.feed1.minute).padStart(2, '0')}`;
+        }
+        $('schedule-display').textContent = `${$('time0').value || '--:--'} / ${$('time1').value || '--:--'}`;
+      });
 
-    $('btn-feed').addEventListener('click', async () => {
-      $('btn-feed').disabled = true;
-      $('feeding-ind').classList.add('show');
-      try {
-        await set(ref(db, 'petfeeder/command/manualFeed'), true);
-        let tries = 0;
-        const check = setInterval(async () => {
-          const snap = await get(ref(db, 'petfeeder/command/manualFeed'));
-          if (!snap.val() || tries++ > 10) {
-            clearInterval(check);
-            $('feeding-ind').classList.remove('show');
-            $('btn-feed').disabled = false;
-          }
-        }, 500);
-      } catch (e) {
-        $('feeding-ind').classList.remove('show');
-        $('btn-feed').disabled = false;
-      }
-    });
+      // ── Lưu lịch ──
+      $('btn-save').addEventListener('click', async () => {
+        const t0 = $('time0').value, t1 = $('time1').value;
+        if (!t0 || !t1) {
+          $('save-status').textContent = 'Vui lòng chọn đủ 2 giờ';
+          $('save-status').style.color = 'var(--danger)';
+          return;
+        }
+        const [h0, m0] = t0.split(':').map(Number);
+        const [h1, m1] = t1.split(':').map(Number);
+        $('btn-save').disabled = true;
+        $('save-status').textContent = 'Đang lưu...';
+        $('save-status').style.color = 'var(--muted)';
+        try {
+          await set(ref(db, 'petfeeder/schedule'), {
+            feed0: { hour: h0, minute: m0 },
+            feed1: { hour: h1, minute: m1 }
+          });
+          $('save-status').textContent = '✓ Đã lưu';
+          $('save-status').style.color = 'var(--accent)';
+          $('schedule-display').textContent = `${t0} / ${t1}`;
+        } catch (e) {
+          $('save-status').textContent = 'Lỗi!';
+          $('save-status').style.color = 'var(--danger)';
+          console.error('[FIREBASE] Write error:', e);
+        }
+        $('btn-save').disabled = false;
+      });
 
-    onValue(ref(db, 'petfeeder/status/isFeeding'), snap => {
-      if (snap.val()) {
-        $('feeding-ind').classList.add('show');
+      // ── Cho ăn thủ công ──
+      $('btn-feed').addEventListener('click', async () => {
         $('btn-feed').disabled = true;
-      } else {
-        $('feeding-ind').classList.remove('show');
-        $('btn-feed').disabled = false;
-      }
-    });
+        $('feeding-ind').classList.add('show');
+        try {
+          await set(ref(db, 'petfeeder/command/manualFeed'), true);
+          let tries = 0;
+          const check = setInterval(async () => {
+            const snap = await get(ref(db, 'petfeeder/command/manualFeed'));
+            if (!snap.val() || tries++ > 10) {
+              clearInterval(check);
+              $('feeding-ind').classList.remove('show');
+              $('btn-feed').disabled = false;
+            }
+          }, 500);
+        } catch (e) {
+          $('feeding-ind').classList.remove('show');
+          $('btn-feed').disabled = false;
+          console.error('[FIREBASE] Manual feed error:', e);
+        }
+      });
+
+      // ── Trạng thái đang cho ăn ──
+      onValue(ref(db, 'petfeeder/status/isFeeding'), snap => {
+        if (snap.val()) {
+          $('feeding-ind').classList.add('show');
+          $('btn-feed').disabled = true;
+        } else {
+          $('feeding-ind').classList.remove('show');
+          $('btn-feed').disabled = false;
+        }
+      });
+
+    } // end setupApp()
   </script>
 
+  <!-- Script phân tích (không cần Firebase) -->
   <script>
     function onFoodTypeChange() {
       const sel = document.getElementById('food-type').value;
