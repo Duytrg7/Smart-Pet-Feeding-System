@@ -44,6 +44,27 @@
       <div class="last-fed" id="last-fed-val">--:--</div>
     </div>
 
+    <!-- LAST DISPENSED -->
+    <div class="card">
+      <div class="card-title">Lần xả gần nhất</div>
+      <div class="dispense-row">
+        <div class="dispense-col">
+          <div class="dispense-label">Mục tiêu</div>
+          <div class="dispense-val" id="disp-target">-- g</div>
+        </div>
+        <div class="dispense-arrow">→</div>
+        <div class="dispense-col">
+          <div class="dispense-label">Thực tế</div>
+          <div class="dispense-val" id="disp-actual">-- g</div>
+        </div>
+        <div class="dispense-col">
+          <div class="dispense-label">Lúc</div>
+          <div class="dispense-val" id="disp-time">--:--</div>
+        </div>
+      </div>
+      <div class="dispense-diff" id="disp-diff"></div>
+    </div>
+
     <!-- SCHEDULE -->
     <div class="card">
       <div class="card-title">Lịch cho ăn</div>
@@ -145,6 +166,17 @@
       <div class="schedule-hint" id="schedule-hint">
         <div class="hint-title">💡 Gợi ý</div>
         <span id="hint-text"></span>
+      </div>
+
+      <!-- NÚT ÁP DỤNG -->
+      <div class="apply-box" id="apply-box">
+        <button class="btn btn-apply" id="btn-apply">
+          ⚙️ Áp dụng cho máy
+        </button>
+        <div class="apply-hint">
+          Sẽ ghi <strong id="apply-gram-preview">--</strong>g/bữa lên máy
+        </div>
+        <div class="apply-status" id="apply-status"></div>
       </div>
 
     </div>
@@ -302,6 +334,53 @@
         }
       });
 
+      // ── Lắng nghe lastDispensed từ Firebase ──
+      onValue(ref(db, 'petfeeder/status/lastDispensed'), snap => {
+        const d = snap.val();
+        if (!d || d.target == null || d.actual == null) return;
+
+        $('disp-target').textContent = parseFloat(d.target).toFixed(1) + ' g';
+        $('disp-actual').textContent = parseFloat(d.actual).toFixed(1) + ' g';
+        $('disp-time').textContent = d.time || '--:--';
+
+        const diff = d.actual - d.target;
+        const diffEl = $('disp-diff');
+        const absDiff = Math.abs(diff).toFixed(1);
+
+        if (Math.abs(diff) <= 2) {
+          diffEl.textContent = `✓ Chính xác (lệch ${absDiff}g)`;
+          diffEl.className = 'dispense-diff ok';
+        } else if (diff > 0) {
+          diffEl.textContent = `▲ Xả dư ${absDiff}g`;
+          diffEl.className = 'dispense-diff warn';
+        } else {
+          diffEl.textContent = `▼ Xả thiếu ${absDiff}g`;
+          diffEl.className = 'dispense-diff warn';
+        }
+      });
+
+      // ── Nút Áp dụng cho máy ──
+      $('btn-apply').addEventListener('click', async () => {
+        const grams = window.lastPerMeal;
+        if (!grams || grams <= 0) return;
+
+        $('btn-apply').disabled = true;
+        $('apply-status').textContent = 'Đang ghi lên máy...';
+        $('apply-status').style.color = 'var(--muted)';
+
+        try {
+          await set(ref(db, 'petfeeder/config/gramsPerMeal'), grams);
+          $('apply-status').textContent = `✓ Đã áp dụng ${grams.toFixed(1)}g/bữa`;
+          $('apply-status').style.color = 'var(--accent)';
+        } catch (e) {
+          $('apply-status').textContent = 'Lỗi! Không ghi được';
+          $('apply-status').style.color = 'var(--danger)';
+          console.error('[FIREBASE] Apply error:', e);
+        }
+
+        $('btn-apply').disabled = false;
+      });
+
     } // end setupApp()
   </script>
 
@@ -355,6 +434,9 @@
       }
       $('hint-text').innerHTML = hint;
       $('schedule-hint').classList.add('show');
+      window.lastPerMeal = perMeal;
+      document.getElementById('apply-gram-preview').textContent = perMeal.toFixed(1);
+      document.getElementById('apply-box').classList.add('show');
     }
   </script>
 
