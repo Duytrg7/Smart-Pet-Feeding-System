@@ -529,7 +529,8 @@ select.input-field option {
     font-size: 0.9rem;
     font-weight: 600;
     cursor: pointer;
-    transition: filter 0.2s, box-shadow 0.2s, transform 0.1s;
+    transition: filter 0.2s, box-shadow 0.2s,
+        transform 0.1s, font-size 0.2s ease-in-out;
 }
 
 .btn-apply:hover:not(:disabled) {
@@ -557,4 +558,99 @@ select.input-field option {
     margin-top: 6px;
     min-height: 16px;
     font-family: 'DM Mono', monospace;
+}
+
+/* ── Consumed section ── */
+.consumed-section {
+    margin-top: 4px;
+}
+
+.consumed-divider {
+    height: 1px;
+    background: var(--border);
+    margin: 12px 0;
+}
+
+.consumed-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+}
+
+.consumed-label {
+    font-size: 0.8rem;
+    color: var(--muted);
+}
+
+.consumed-val {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+}
+
+/* Progress bar */
+.consumed-bar-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 10px 0 8px;
+}
+
+.consumed-bar-track {
+    flex: 1;
+    height: 7px;
+    background: var(--border);
+    border-radius: 99px;
+    overflow: hidden;
+}
+
+.consumed-bar-fill {
+    height: 100%;
+    border-radius: 99px;
+    width: 0%;
+    transition: width 0.6s ease, background 0.3s;
+}
+
+.consumed-pct {
+    font-size: 0.8rem;
+    font-weight: 600;
+    font-family: 'DM Mono', monospace;
+    color: var(--muted);
+    min-width: 38px;
+    text-align: right;
+}
+
+/* Alert text */
+.consumed-alert {
+    font-size: 0.82rem;
+    padding: 6px 10px;
+    border-radius: 6px;
+    margin-top: 4px;
+    display: none;
+}
+
+.consumed-alert.show {
+    display: block;
+}
+
+.consumed-alert.good {
+    background: #e6f9f0;
+    color: #1a7a4a;
+}
+
+.consumed-alert.warn {
+    background: #fff8e1;
+    color: #9a6c00;
+}
+
+.consumed-alert.danger {
+    background: #fdecea;
+    color: #c0392b;
+}
+
+.consumed-alert.error {
+    background: #f0f0f0;
+    color: #888;
 }

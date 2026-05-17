@@ -38,6 +38,18 @@
       </div>
     </div>
 
+    <!-- TRAY WEIGHT -->
+    <div class="card">
+      <div class="card-title">Thức ăn trên khay</div>
+      <div>
+        <span class="weight-value" id="tray-weight-val">--</span>
+        <span class="weight-unit">g</span>
+      </div>
+      <div class="food-state">
+        <span id="tray-state-text">Chưa có dữ liệu</span>
+      </div>
+    </div>
+
     <!-- LAST FED -->
     <div class="card">
       <div class="card-title">Lần cho ăn gần nhất</div>
@@ -52,7 +64,6 @@
           <div class="dispense-label">Mục tiêu</div>
           <div class="dispense-val" id="disp-target">-- g</div>
         </div>
-        <div class="dispense-arrow">→</div>
         <div class="dispense-col">
           <div class="dispense-label">Thực tế</div>
           <div class="dispense-val" id="disp-actual">-- g</div>
@@ -63,6 +74,31 @@
         </div>
       </div>
       <div class="dispense-diff" id="disp-diff"></div>
+
+      <!-- CONSUMED vs RECOMMENDED -->
+      <div class="consumed-section" id="consumed-section">
+        <div class="consumed-divider"></div>
+
+        <div class="consumed-row">
+          <span class="consumed-label">Khuyến nghị</span>
+          <span class="consumed-val" id="cons-recommended">-- g</span>
+        </div>
+        <div class="consumed-row">
+          <span class="consumed-label">Thực tế ăn</span>
+          <span class="consumed-val" id="cons-actual">-- g</span>
+        </div>
+
+        <!-- Thanh progress -->
+        <div class="consumed-bar-wrap">
+          <div class="consumed-bar-track">
+            <div class="consumed-bar-fill" id="cons-bar"></div>
+          </div>
+          <span class="consumed-pct" id="cons-pct">--%</span>
+        </div>
+
+        <!-- Cảnh báo -->
+        <div class="consumed-alert" id="cons-alert"></div>
+      </div>
     </div>
 
     <!-- SCHEDULE -->
@@ -88,8 +124,18 @@
     <!-- MANUAL FEED -->
     <div class="card">
       <div class="card-title">Điều khiển thủ công</div>
-      <button class="btn btn-secondary" id="btn-feed">Cho ăn ngay</button>
+
+      <div style="margin-bottom:10px;color:var(--muted);font-size:0.95rem">
+        <span id="manual-gram-preview">Đang tải khẩu phần...</span>
+      </div>
+
+      <button class="btn btn-secondary" id="btn-feed" disabled>
+        Cho ăn ngay
+      </button>
+
       <div class="feeding-indicator" id="feeding-ind">⚙ Đang cấp thức ăn...</div>
+
+      <div id="manual-feed-status" style="margin-top:8px;font-size:0.9rem;color:var(--muted)"></div>
     </div>
 
     <!-- DIET ANALYSIS -->
@@ -224,6 +270,41 @@
       });
 
     function setupApp() {
+      let currentRecommended = 0;
+      let gramsLoaded = false;
+      let deviceIsFeeding = false;
+
+      function getManualFeedGrams() {
+        if (currentRecommended && currentRecommended > 0) {
+          return currentRecommended;
+        }
+
+        if (window.lastPerMeal && window.lastPerMeal > 0) {
+          return window.lastPerMeal;
+        }
+
+        return 0;
+      }
+
+      function updateManualFeedUI() {
+        const grams = getManualFeedGrams();
+
+        if (!gramsLoaded && (!window.lastPerMeal || window.lastPerMeal <= 0)) {
+          $('manual-gram-preview').textContent = 'Đang tải khẩu phần...';
+          $('btn-feed').disabled = true;
+          return;
+        }
+
+        if (grams > 0) {
+          $('manual-gram-preview').textContent = `Sẽ xả: ${grams.toFixed(1)} g`;
+        } else {
+          $('manual-gram-preview').textContent = 'Chưa có khẩu phần — hãy tính hoặc áp dụng khẩu phần trước';
+        }
+
+        $('btn-feed').disabled = deviceIsFeeding || grams <= 0;
+      }
+
+      window.updateManualFeedUI = updateManualFeedUI;
 
       // ── Trạng thái kết nối ──
       onValue(ref(db, '.info/connected'), snap => {
@@ -232,10 +313,24 @@
       });
 
       // ── Cân nặng thức ăn ──
-      onValue(ref(db, 'petfeeder/status/weight'), snap => {
+      onValue(ref(db, 'petfeeder/status/hopperWeight'), snap => {
         const w = snap.val();
         if (w === null) return;
         $('weight-val').textContent = parseFloat(w).toFixed(1);
+      });
+
+      onValue(ref(db, 'petfeeder/status/trayWeight'), snap => {
+        const w = snap.val();
+        if (w === null) return;
+
+        const trayWeight = parseFloat(w);
+        $('tray-weight-val').textContent = trayWeight.toFixed(1);
+
+        if (trayWeight <= 5) {
+          $('tray-state-text').textContent = 'Khay trống';
+        } else {
+          $('tray-state-text').textContent = 'Còn thức ăn trên khay';
+        }
       });
 
       // ── Trạng thái thức ăn ──
@@ -280,6 +375,11 @@
           $('save-status').style.color = 'var(--danger)';
           return;
         }
+        if (t0 === t1) {
+          $('save-status').textContent = 'Hai bữa không nên trùng giờ';
+          $('save-status').style.color = 'var(--danger)';
+          return;
+        }
         const [h0, m0] = t0.split(':').map(Number);
         const [h1, m1] = t1.split(':').map(Number);
         $('btn-save').disabled = true;
@@ -306,32 +406,74 @@
         $('btn-feed').disabled = true;
         $('feeding-ind').classList.add('show');
         try {
-          await set(ref(db, 'petfeeder/command/manualFeed'), true);
+          const grams = getManualFeedGrams();
+
+          if (!grams || grams <= 0) {
+            $('manual-feed-status').textContent = 'Chưa có số gram hợp lệ để cho ăn';
+            $('feeding-ind').classList.remove('show');
+            $('btn-feed').disabled = false;
+            updateManualFeedUI();
+            return;
+          }
+
+          await set(ref(db, 'petfeeder/command/feedNow'), {
+            id: Date.now(),
+            grams: grams,
+            status: 'pending',
+            source: 'web'
+          });
+
           let tries = 0;
           const check = setInterval(async () => {
-            const snap = await get(ref(db, 'petfeeder/command/manualFeed'));
-            if (!snap.val() || tries++ > 10) {
+            const snap = await get(ref(db, 'petfeeder/command/feedNow/status'));
+            const status = snap.val();
+            const doneStatuses = [
+              'done',
+              'done_fallback',
+              'error_busy',
+              'error_invalid_grams',
+              'error'
+            ];
+
+            if (doneStatuses.includes(status) || tries++ > 60) {
               clearInterval(check);
               $('feeding-ind').classList.remove('show');
-              $('btn-feed').disabled = false;
+
+              if (!doneStatuses.includes(status)) {
+                await set(ref(db, 'petfeeder/command/feedNow/status'), 'timeout');
+                $('manual-feed-status').textContent = 'Không nhận được phản hồi từ máy';
+              } else if (status === 'done' || status === 'done_fallback') {
+                $('manual-feed-status').textContent = `✓ Đã cho ăn ${grams.toFixed(1)}g`;
+              } else if (status === 'error_busy') {
+                $('manual-feed-status').textContent = 'Máy đang bận, vui lòng thử lại sau';
+              } else if (status === 'error_invalid_grams') {
+                $('manual-feed-status').textContent = 'Số gram không hợp lệ';
+              } else {
+                $('manual-feed-status').textContent = 'Không nhận được phản hồi từ máy';
+              }
+
+              updateManualFeedUI();
             }
           }, 500);
         } catch (e) {
           $('feeding-ind').classList.remove('show');
-          $('btn-feed').disabled = false;
+          $('manual-feed-status').textContent = 'Lỗi khi gửi lệnh cho ăn';
+          updateManualFeedUI();
           console.error('[FIREBASE] Manual feed error:', e);
         }
       });
 
       // ── Trạng thái đang cho ăn ──
       onValue(ref(db, 'petfeeder/status/isFeeding'), snap => {
-        if (snap.val()) {
+        deviceIsFeeding = !!snap.val();
+
+        if (deviceIsFeeding) {
           $('feeding-ind').classList.add('show');
-          $('btn-feed').disabled = true;
         } else {
           $('feeding-ind').classList.remove('show');
-          $('btn-feed').disabled = false;
         }
+
+        updateManualFeedUI();
       });
 
       // ── Lắng nghe lastDispensed từ Firebase ──
@@ -356,6 +498,65 @@
         } else {
           diffEl.textContent = `▼ Xả thiếu ${absDiff}g`;
           diffEl.className = 'dispense-diff warn';
+        }
+      });
+
+      // ── Đọc gramsPerMeal (khuyến nghị) ──
+      onValue(ref(db, 'petfeeder/config/gramsPerMeal'), snap => {
+        const g = snap.val();
+        gramsLoaded = true;
+
+        if (g && g > 0) {
+          currentRecommended = parseFloat(g);
+          $('cons-recommended').textContent = currentRecommended.toFixed(1) + ' g';
+          $('manual-feed-status').textContent = '';
+        } else {
+          currentRecommended = 0;
+          $('manual-feed-status').textContent = 'Chưa có khẩu phần trên Firebase';
+        }
+
+        updateManualFeedUI();
+      });
+
+      // ── Đọc lastMealConsumed + so sánh ──
+      onValue(ref(db, 'petfeeder/status/lastMealConsumed'), snap => {
+        const d = snap.val();
+        if (!d || d.consumed == null) return;
+
+        const consumed = parseFloat(d.consumed);
+        $('cons-actual').textContent = consumed.toFixed(1) + ' g';
+        $('consumed-section').style.display = 'block';
+
+        // Tính tỉ lệ (dùng gramsPerMeal làm mẫu)
+        const recommended = currentRecommended || consumed; // fallback
+        if (recommended <= 0) return;
+
+        const pct = (consumed / recommended) * 100;
+        const pctClamped = Math.min(pct, 120); // cap bar ở 120%
+
+        $('cons-bar').style.width = pctClamped + '%';
+        $('cons-pct').textContent = pct.toFixed(0) + '%';
+
+        // Màu bar + cảnh báo
+        const alertEl = $('cons-alert');
+        alertEl.classList.add('show');
+
+        if (pct < 50) {
+          $('cons-bar').style.background = '#e74c3c';
+          alertEl.className = 'consumed-alert show danger';
+          alertEl.textContent = '⚠️ Ăn rất ít (' + pct.toFixed(0) + '%) — kiểm tra sức khỏe thú cưng';
+        } else if (pct < 80) {
+          $('cons-bar').style.background = '#f39c12';
+          alertEl.className = 'consumed-alert show warn';
+          alertEl.textContent = '💬 Ăn chưa đủ khẩu phần (' + pct.toFixed(0) + '%)';
+        } else if (pct <= 110) {
+          $('cons-bar').style.background = '#2ecc71';
+          alertEl.className = 'consumed-alert show good';
+          alertEl.textContent = '✅ Ăn bình thường (' + pct.toFixed(0) + '%)';
+        } else {
+          $('cons-bar').style.background = '#95a5a6';
+          alertEl.className = 'consumed-alert show error';
+          alertEl.textContent = '❓ Tỉ lệ bất thường — có thể cân khay đang lệch';
         }
       });
 
@@ -435,6 +636,9 @@
       $('hint-text').innerHTML = hint;
       $('schedule-hint').classList.add('show');
       window.lastPerMeal = perMeal;
+      if (window.updateManualFeedUI) {
+        window.updateManualFeedUI();
+      }
       document.getElementById('apply-gram-preview').textContent = perMeal.toFixed(1);
       document.getElementById('apply-box').classList.add('show');
     }
