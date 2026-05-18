@@ -101,6 +101,14 @@
       </div>
     </div>
 
+    <!-- LỊCH SỬ BỮA ĂN -->
+    <div class="card">
+      <div class="card-title">Lịch sử bữa ăn</div>
+      <div id="meal-log-list" style="font-size:0.9rem;color:var(--muted)">
+        Chưa có dữ liệu
+      </div>
+    </div>
+
     <!-- SCHEDULE -->
     <div class="card">
       <div class="card-title">Lịch cho ăn</div>
@@ -234,7 +242,7 @@
     // ── 1. Import tất cả lên đầu ──
     import { initializeApp }
       from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getDatabase, ref, onValue, set, get }
+    import { getDatabase, ref, onValue, set, get, query, limitToLast, orderByKey }
       from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
     import { getAuth, signInAnonymously }
       from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
@@ -273,6 +281,43 @@
       let currentRecommended = 0;
       let gramsLoaded = false;
       let deviceIsFeeding = false;
+
+      const mealLogQuery = query(
+        ref(db, 'petfeeder/mealLogs'),
+        orderByKey(),
+        limitToLast(8)
+      );
+
+      onValue(mealLogQuery, snap => {
+        const box = $('meal-log-list');
+        const data = snap.val();
+
+        if (!data) {
+          box.textContent = 'Chưa có dữ liệu';
+          return;
+        }
+
+        const rows = [];
+        snap.forEach(child => {
+          rows.push(child.val());
+        });
+        rows.reverse();
+
+        box.innerHTML = rows.map(log => {
+          const target = log.target != null ? Number(log.target).toFixed(1) : '--';
+          const dispensed = log.actualDispensed != null ? Number(log.actualDispensed).toFixed(1) : '--';
+          const consumed = log.consumed != null ? Number(log.consumed).toFixed(1) : '--';
+          const time = log.time || '--:--';
+          const status = log.status || 'unknown';
+
+          return `
+            <div style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.08)">
+              <div><strong>${time}</strong> — ${status}</div>
+              <div>Mục tiêu: ${target}g | Xả: ${dispensed}g | Ăn: ${consumed}g</div>
+            </div>
+          `;
+        }).join('');
+      });
 
       function getManualFeedGrams() {
         if (currentRecommended && currentRecommended > 0) {
@@ -326,7 +371,7 @@
         const trayWeight = parseFloat(w);
         $('tray-weight-val').textContent = trayWeight.toFixed(1);
 
-        if (trayWeight <= 5) {
+        if (trayWeight <= 10) {
           $('tray-state-text').textContent = 'Khay trống';
         } else {
           $('tray-state-text').textContent = 'Còn thức ăn trên khay';
@@ -636,6 +681,10 @@
       $('hint-text').innerHTML = hint;
       $('schedule-hint').classList.add('show');
       window.lastPerMeal = perMeal;
+      const manualStatus = document.getElementById('manual-feed-status');
+      if (manualStatus) {
+        manualStatus.textContent = 'Khẩu phần mới vừa tính, hãy bấm “Áp dụng cho máy” để lưu lên Firebase';
+      }
       if (window.updateManualFeedUI) {
         window.updateManualFeedUI();
       }
