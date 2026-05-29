@@ -50,15 +50,10 @@
       </div>
     </div>
 
-    <!-- LAST FED -->
-    <div class="card">
-      <div class="card-title">Lần cho ăn gần nhất</div>
-      <div class="last-fed" id="last-fed-val">--:--</div>
-    </div>
 
     <!-- LAST DISPENSED -->
     <div class="card">
-      <div class="card-title">Lần xả gần nhất</div>
+      <div class="card-title">Bữa ăn gần nhất</div>
       <div class="dispense-row">
         <div class="dispense-col">
           <div class="dispense-label">Mục tiêu</div>
@@ -281,6 +276,7 @@
       let currentRecommended = 0;
       let gramsLoaded = false;
       let deviceIsFeeding = false;
+      let lastDispensedData = null;
 
       const mealLogQuery = query(
         ref(db, 'petfeeder/mealLogs'),
@@ -304,16 +300,25 @@
         rows.reverse();
 
         box.innerHTML = rows.map(log => {
-          const target = log.target != null ? Number(log.target).toFixed(1) : '--';
-          const dispensed = log.actualDispensed != null ? Number(log.actualDispensed).toFixed(1) : '--';
-          const consumed = log.consumed != null ? Number(log.consumed).toFixed(1) : '--';
+          const targetNum = log.target != null ? Number(log.target) : NaN;
+          const target = Number.isFinite(targetNum) && targetNum > 0
+            ? targetNum.toFixed(1) + 'g'
+            : 'Thủ công';
+
+          const dispensed = log.actualDispensed != null
+            ? Number(log.actualDispensed).toFixed(1) + 'g'
+            : '--';
+
+          const consumed = log.consumed != null
+            ? Number(log.consumed).toFixed(1) + 'g'
+            : '--';
           const time = log.time || '--:--';
           const status = log.status || 'unknown';
 
           return `
             <div style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.08)">
               <div><strong>${time}</strong> — ${status}</div>
-              <div>Mục tiêu: ${target}g | Xả: ${dispensed}g | Ăn: ${consumed}g</div>
+              <div>Mục tiêu: ${target} | Xả: ${dispensed} | Ăn: ${consumed}</div>
             </div>
           `;
         }).join('');
@@ -349,7 +354,39 @@
         $('btn-feed').disabled = deviceIsFeeding || grams <= 0;
       }
 
+      function updateDispensedTargetPreview() {
+        const lastTarget =
+          lastDispensedData && lastDispensedData.target != null
+            ? Number(lastDispensedData.target)
+            : 0;
+
+        const targetToShow =
+          lastTarget > 0
+            ? lastTarget
+            : currentRecommended;
+
+        if (targetToShow > 0) {
+          $('disp-target').textContent = targetToShow.toFixed(1) + ' g';
+        } else {
+          $('disp-target').textContent = '-- g';
+        }
+      }
+
       window.updateManualFeedUI = updateManualFeedUI;
+      function resetConsumedUIForNewMeal() {
+        $('consumed-section').style.display = 'block';
+
+        $('cons-actual').textContent = '0.0 g';
+        $('cons-bar').style.width = '0%';
+        $('cons-pct').textContent = '0%';
+
+        const alertEl = $('cons-alert');
+        alertEl.className = 'consumed-alert show warn';
+        alertEl.textContent = '⏳ Đang chờ đo lượng ăn sau bữa...';
+
+        // Màu trung tính trong lúc chờ kết quả mới
+        $('cons-bar').style.background = '#95a5a6';
+      }
 
       // ── Trạng thái kết nối ──
       onValue(ref(db, '.info/connected'), snap => {
@@ -394,10 +431,6 @@
         }
       });
 
-      // ── Lần cho ăn gần nhất ──
-      onValue(ref(db, 'petfeeder/status/lastFed'), snap => {
-        $('last-fed-val').textContent = snap.val() || '--:--';
-      });
 
       // ── Load lịch cho ăn ──
       onValue(ref(db, 'petfeeder/schedule'), snap => {
@@ -510,10 +543,16 @@
 
       // ── Trạng thái đang cho ăn ──
       onValue(ref(db, 'petfeeder/status/isFeeding'), snap => {
+        const wasDeviceFeeding = deviceIsFeeding;
         deviceIsFeeding = !!snap.val();
 
         if (deviceIsFeeding) {
           $('feeding-ind').classList.add('show');
+
+          // Khi bắt đầu một lần xả mới, reset thanh thực tế ăn về 0%
+          if (!wasDeviceFeeding) {
+            resetConsumedUIForNewMeal();
+          }
         } else {
           $('feeding-ind').classList.remove('show');
         }
@@ -524,14 +563,29 @@
       // ── Lắng nghe lastDispensed từ Firebase ──
       onValue(ref(db, 'petfeeder/status/lastDispensed'), snap => {
         const d = snap.val();
-        if (!d || d.target == null || d.actual == null) return;
+        if (!d || d.actual == null) return;
 
-        $('disp-target').textContent = parseFloat(d.target).toFixed(1) + ' g';
-        $('disp-actual').textContent = parseFloat(d.actual).toFixed(1) + ' g';
+        lastDispensedData = d;
+
+        const actual = Number(d.actual);
+        const target = d.target != null ? Number(d.target) : 0;
+
+        updateDispensedTargetPreview();
+
+        $('disp-actual').textContent = actual.toFixed(1) + ' g';
         $('disp-time').textContent = d.time || '--:--';
 
-        const diff = d.actual - d.target;
         const diffEl = $('disp-diff');
+
+        // Nếu target = 0 thì không nên báo "chính xác",
+        // vì đây thường là feedOnce / nút vật lý / dữ liệu cũ
+        if (!target || target <= 0) {
+          diffEl.textContent = 'Đã áp dụng khẩu phần — chờ lần xả tiếp theo';
+          diffEl.className = 'dispense-diff warn';
+          return;
+        }
+
+        const diff = actual - target;
         const absDiff = Math.abs(diff).toFixed(1);
 
         if (Math.abs(diff) <= 2) {
@@ -560,6 +614,7 @@
           $('manual-feed-status').textContent = 'Chưa có khẩu phần trên Firebase';
         }
 
+        updateDispensedTargetPreview();
         updateManualFeedUI();
       });
 
