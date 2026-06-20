@@ -113,27 +113,17 @@ sequenceDiagram
 
 ```
 pet_feeder_web/
-├── README.md              # Tổng quan hệ thống (file này)
+├── README.md              # Tổng quan hệ thống 
 ├── .firebase/              # Cấu hình Firebase (deploy/hosting)
-├── firmware/                # ESP32 firmware (PlatformIO)
+├── firmware/                # ESP32 firmware (PlatformIO) 
 │   ├── src/
 │   ├── include/
 │   ├── lib/
 │   ├── platformio.ini
-│   └── README.md           # Hướng dẫn build/flash firmware
+│   └── README.md           
 ├── web/                     # Web dashboard
 │   └── README.md           # Hướng dẫn chạy web
 └── images/                  # Hình ảnh phần cứng
     └── hardware_overview.png
 ```
 
-## Getting Started
-
-1. Vào `firmware/README.md` để build và flash firmware lên ESP32.
-2. Vào `web/README.md` để chạy web dashboard.
-3. Đấu nối phần cứng theo sơ đồ khối và hình ảnh wiring ở trên.
-4. Cấp nguồn cho thiết bị — hệ thống sẽ đồng bộ thời gian qua NTP và hoạt động theo lịch đã cấu hình.
-
-## License
-
-MIT License (hoặc cập nhật theo lựa chọn của bạn)
