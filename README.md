@@ -125,8 +125,10 @@ pet_feeder_web/
 │   ├── platformio.ini
 │   └── README.md            
 ├── web/                      # Web dashboard
-│   └── README.md            # Web setup instructions
-│   └── README.md  
+│   └── public
+│       └── 404.html
+│       └── index.html
+│       └── style.css
 └── images/                   # Hardware images
     └── hardware_overview.jpg
 ```
