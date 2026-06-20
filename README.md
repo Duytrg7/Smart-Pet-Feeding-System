@@ -1,6 +1,6 @@
 # Smart Pet Feeding System
 
-An IoT-based automatic pet feeding system built on **ESP32**, featuring scheduled feeding, real-time food level monitoring via dual load cells, and cloud-based tracking through **Firebase Realtime Database**.
+An IoT-based automatic pet feeding system built on **ESP32**, featuring scheduled feeding, real-time food level monitoring via dual load cells, and cloud-based tracking through **Firebase Realtime Database**, with a companion web dashboard.
 
 ---
 
@@ -10,7 +10,7 @@ This project automates pet feeding using a microcontroller-based system that:
 - Dispenses food on a fixed schedule (RTC + NTP synchronized)
 - Monitors food quantity in both the **storage container** and the **feeding tray** using load cells
 - Sends low-food alerts and logs feeding history to the cloud
-- Allows remote monitoring through Firebase
+- Allows remote monitoring through a web dashboard connected to Firebase
 
 **Tech stack:** ESP32 · Firebase Realtime Database · Load Cell + HX711 · Servo Motor · RTC DS1302 · NTP
 
@@ -33,7 +33,7 @@ flowchart TB
     ESP32 --> SERVO["Servo Motor\n(Food Dispenser)"]
     ESP32 <-->|WiFi / HTTPS| FB[("Firebase\nRealtime Database")]
 
-    FB --> APP["Monitoring\n(App / Dashboard)"]
+    FB --> WEB["Web Dashboard"]
 ```
 
 **Components:**
@@ -45,34 +45,29 @@ flowchart TB
 | RTC DS1302 | Keeps real-time clock for scheduled feeding, backed up with NTP sync |
 | Servo Motor | Opens/closes the food dispensing mechanism |
 | Firebase Realtime Database | Stores feeding history, current food levels, and triggers alerts |
+| Web Dashboard | Displays real-time status and feeding history to the user |
 
 ---
 
 ## Hardware Images
 
-> Thay các placeholder dưới đây bằng ảnh thật của bạn. Tạo thư mục `images/` trong repo, bỏ ảnh vào đó, rồi sửa đường dẫn tương ứng.
+![Hardware Wiring Overview](images/hardware_overview.png)
 
-| Mô tả | Hình ảnh |
-|---|---|
-| Tổng quan hệ thống | `![Overview](images/overview.jpg)` |
-| Mạch ESP32 + HX711 + Load Cell | `![Wiring](images/wiring.jpg)` |
-| Khay chứa thức ăn (storage) | `![Storage Tray](images/storage_tray.jpg)` |
-| Khay cho ăn (feeding tray) | `![Feeding Tray](images/feeding_tray.jpg)` |
-| Cơ cấu servo phân phối thức ăn | `![Servo Mechanism](images/servo.jpg)` |
+Sơ đồ đi dây toàn bộ hệ thống: ESP32, load cell + HX711, RTC DS1302, servo motor.
 
 ---
 
 ## Data Flow Description
 
 1. **Scheduling** — RTC DS1302 giữ thời gian thực; ESP32 đồng bộ định kỳ qua NTP khi có WiFi để đảm bảo giờ giấc chính xác.
-2. **Trigger** — Khi đến giờ ăn đã lên lịch (hoặc người dùng kích hoạt từ xa qua Firebase), ESP32 ra lệnh cho servo motor mở cơ cấu phân phối thức ăn.
+2. **Trigger** — Khi đến giờ ăn đã lên lịch (hoặc người dùng kích hoạt từ xa qua web dashboard), ESP32 ra lệnh cho servo motor mở cơ cấu phân phối thức ăn.
 3. **Sensing** — Hai cảm biến load cell (qua module HX711) liên tục đo khối lượng:
-   - Load cell tại **storage container** → xác định lượng thức ăn còn lại trong kho.
-   - Load cell tại **feeding tray** → xác định lượng thức ăn thú cưng đã ăn / còn lại trong khay.
+   - Load cell tại **storage container** xác định lượng thức ăn còn lại trong kho.
+   - Load cell tại **feeding tray** xác định lượng thức ăn thú cưng đã ăn / còn lại trong khay.
 4. **Processing** — ESP32 xử lý dữ liệu cân nặng, tính toán lượng thức ăn đã cấp phát, và so sánh với ngưỡng cảnh báo (low-food threshold).
 5. **Cloud Sync** — Dữ liệu (thời gian cho ăn, khối lượng thức ăn, trạng thái thiết bị) được gửi lên **Firebase Realtime Database** theo thời gian thực.
 6. **Alerting & History** — Nếu lượng thức ăn trong storage thấp hơn ngưỡng, hệ thống ghi cảnh báo low-food lên Firebase. Mọi lần cho ăn đều được lưu lại thành feeding history để truy xuất sau này.
-7. **Monitoring** — Người dùng có thể theo dõi trạng thái hệ thống và lịch sử cho ăn theo thời gian thực thông qua dữ liệu trên Firebase.
+7. **Monitoring** — Người dùng theo dõi trạng thái hệ thống và lịch sử cho ăn theo thời gian thực thông qua web dashboard, được đồng bộ từ Firebase.
 
 ```mermaid
 sequenceDiagram
@@ -81,6 +76,7 @@ sequenceDiagram
     participant LC as Load Cells (HX711)
     participant Servo
     participant FB as Firebase
+    participant Web as Web Dashboard
 
     RTC->>ESP32: Scheduled feeding time reached
     ESP32->>Servo: Trigger dispensing
@@ -91,17 +87,19 @@ sequenceDiagram
     alt Food level low
         ESP32->>FB: Trigger low-food alert
     end
+    FB-->>Web: Sync real-time data
 ```
 
 ---
 
 ## Features
 
-- ⏰ Scheduled feeding via RTC + NTP sync
-- ⚖️ Dual load cell monitoring (storage + tray)
-- ☁️ Cloud-based monitoring via Firebase Realtime Database
-- 🔔 Low-food alert mechanism
-- 📜 Feeding history tracking
+- Scheduled feeding via RTC + NTP sync
+- Dual load cell monitoring (storage + tray)
+- Cloud-based monitoring via Firebase Realtime Database
+- Low-food alert mechanism
+- Feeding history tracking
+- Web dashboard for remote monitoring
 
 ## Hardware Used
 
@@ -111,23 +109,31 @@ sequenceDiagram
 - Servo Motor
 - Food storage + dispensing mechanism (3D printed / custom-built)
 
-## 📂 Project Structure
+## Project Structure
 
 ```
-smart-pet-feeding-system/
-├── src/                # ESP32 firmware source code
-├── images/             # Hardware photos (add your own)
-├── docs/               # Additional documentation/diagrams
-└── README.md
+pet_feeder_web/
+├── README.md              # Tổng quan hệ thống (file này)
+├── .firebase/              # Cấu hình Firebase (deploy/hosting)
+├── firmware/                # ESP32 firmware (PlatformIO)
+│   ├── src/
+│   ├── include/
+│   ├── lib/
+│   ├── platformio.ini
+│   └── README.md           # Hướng dẫn build/flash firmware
+├── web/                     # Web dashboard
+│   └── README.md           # Hướng dẫn chạy web
+└── images/                  # Hình ảnh phần cứng
+    └── hardware_overview.png
 ```
 
-## 🚀 Getting Started
+## Getting Started
 
-1. Flash the firmware in `src/` to your ESP32 using PlatformIO / Arduino IDE.
-2. Configure WiFi credentials and Firebase project settings in the config file.
-3. Wire the load cells, HX711, RTC DS1302, and servo motor according to the block diagram above.
-4. Power on the device — it will sync time via NTP and start operating on the configured schedule.
+1. Vào `firmware/README.md` để build và flash firmware lên ESP32.
+2. Vào `web/README.md` để chạy web dashboard.
+3. Đấu nối phần cứng theo sơ đồ khối và hình ảnh wiring ở trên.
+4. Cấp nguồn cho thiết bị — hệ thống sẽ đồng bộ thời gian qua NTP và hoạt động theo lịch đã cấu hình.
 
-## 📄 License
+## License
 
-MIT License (or update according to your preference)
+MIT License (hoặc cập nhật theo lựa chọn của bạn)
