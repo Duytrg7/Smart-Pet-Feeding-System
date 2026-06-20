@@ -129,11 +129,10 @@ pet_feeder_web/
 │       └── 404.html
 │       └── index.html
 │       └── style.css
+│   └── .firebaserc
+│   └── .gitignore
+│   └── firebase.json
 └── images/                   # Hardware images
     └── hardware_overview.jpg
 ```
 
-
-## License
-
-MIT License (or update according to your preference)
