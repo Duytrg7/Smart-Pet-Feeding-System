@@ -119,13 +119,19 @@ pet_feeder_web/
 ├── README.vi.md            # Tổng quan hệ thống (file này, Tiếng Việt)
 ├── .firebase/               # Cấu hình Firebase (deploy/hosting)
 ├── firmware/                 # Firmware ESP32 (PlatformIO)
-│   ├── src/
+│   ├── src/                  # Source code các module
 │   ├── include/
 │   ├── lib/
 │   ├── platformio.ini
 │   └── README.md            
 ├── web/                      # Web dashboard
-│   └── README.md            # Hướng dẫn chạy web
+│   └── public
+│       └── 404.html
+│       └── index.html
+│       └── style.css
+│   └── .firebaserc
+│   └── .gitignore
+│   └── firebase.json
 └── images/                   # Hình ảnh phần cứng
     └── hardware_overview.jpg
 ```
