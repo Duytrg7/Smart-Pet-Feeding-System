@@ -119,7 +119,7 @@ pet_feeder_web/
 ├── README.vi.md            # System overview (Vietnamese)
 ├── .firebase/               # Firebase configuration (deploy/hosting)
 ├── firmware/                 # ESP32 firmware (PlatformIO)
-│   ├── src/
+│   ├── src/                  # Module's source code
 │   ├── include/
 │   ├── lib/
 │   ├── platformio.ini
