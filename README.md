@@ -126,6 +126,7 @@ pet_feeder_web/
 │   └── README.md            
 ├── web/                      # Web dashboard
 │   └── README.md            # Web setup instructions
+│   └── README.md  
 └── images/                   # Hardware images
     └── hardware_overview.jpg
 ```
