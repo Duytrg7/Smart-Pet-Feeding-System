@@ -53,7 +53,7 @@ flowchart TB
 
 ## Hardware Images
 
-![Hardware Wiring Overview](images/hardware_overview.png)
+![Hardware Wiring Overview](images/hardware_overview.jpg)
 
 Full system wiring diagram: ESP32, load cell + HX711, RTC DS1302, servo motor.
 
