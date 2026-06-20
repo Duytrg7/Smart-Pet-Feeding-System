@@ -127,5 +127,5 @@ pet_feeder_web/
 ├── web/                      # Web dashboard
 │   └── README.md            # Hướng dẫn chạy web
 └── images/                   # Hình ảnh phần cứng
-    └── hardware_overview.png
+    └── hardware_overview.jpg
 ```
