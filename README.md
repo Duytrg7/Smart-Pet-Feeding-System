@@ -51,11 +51,51 @@ flowchart TB
 
 ---
 
-## Hardware Images
+## Hardware Image
 
-![Hardware Wiring Overview](images/hardware_overview.jpg)
+<p align="center">
+  <img src="images/hardware_overview.jpg" alt="Hardware Wiring Overview" width="700">
+</p>
 
 Full system wiring diagram: ESP32, load cell + HX711, RTC DS1302, servo motor.
+
+---
+
+## Finished Product
+
+<p align="center">
+  <img src="images/finished_product.jpg" alt="Finished Product" width="500">
+</p>
+
+---
+
+## Web Dashboard
+
+A web interface built with Firebase Hosting provides real-time monitoring, feeding history, schedule configuration, and a diet calculator for the pet's daily food needs.
+
+### Real-time Monitoring & Anomaly Detection
+
+<img src="images/web_interface1.jpg" alt="Dashboard Monitoring" width="380">
+
+Displays the remaining food in storage, food currently on the tray, and a summary of the latest meal (target vs. actual dispensed amount). The dashboard flags anomalies, such as a mismatch between dispensed and consumed weight that may indicate the tray scale needs recalibration.
+
+### Feeding History
+
+<img src="images/web_interface2.jpg" alt="Feeding History" width="380">
+
+A chronological log of every feeding event, showing whether the feeding was scheduled or manual, the target portion, the amount dispensed, and the amount actually eaten.
+
+### Feeding Schedule & Manual Control
+
+<img src="images/web_interface3.jpg" alt="Feeding Schedule" width="380">
+
+Lets the user configure breakfast and dinner feeding times, save the schedule to the device, and trigger an immediate manual feeding when needed.
+
+### Diet Calculator
+
+<img src="images/web_interface4.jpg" alt="Diet Calculator" width="380">
+
+Calculates the cat's daily caloric needs (RER/MER) based on body weight, weight goal (e.g., maintain weight), and food type, then recommends a portion size per meal. The calculated portion can be applied directly to the device's feeding schedule.
 
 ---
 
@@ -102,6 +142,7 @@ sequenceDiagram
 - Low-food alert mechanism
 - Feeding history tracking
 - Web dashboard for remote monitoring
+- Diet calculator for personalized portion recommendations
 
 ## Hardware Used
 
@@ -123,7 +164,7 @@ pet_feeder_web/
 │   ├── include/
 │   ├── lib/
 │   ├── platformio.ini
-│   └── README.md            
+│   └── README.md
 ├── web/                      # Web dashboard
 │   └── public
 │       └── 404.html
@@ -132,7 +173,22 @@ pet_feeder_web/
 │   └── .firebaserc
 │   └── .gitignore
 │   └── firebase.json
-└── images/                   # Hardware images
-    └── hardware_overview.jpg
+└── images/                   # Hardware images and web dashboard screenshots
+    ├── hardware_overview.jpg
+    ├── finished_product.jpg
+    ├── web_interface1.jpg
+    ├── web_interface2.jpg
+    ├── web_interface3.jpg
+    └── web_interface4.jpg
 ```
 
+## Getting Started
+
+1. Go to `firmware/README.md` to build and flash the firmware onto the ESP32.
+2. Go to `web/README.md` to run the web dashboard.
+3. Wire the hardware according to the block diagram and wiring image above.
+4. Power on the device — it will sync time via NTP and start operating on the configured schedule.
+
+## License
+
+MIT License (or update according to your preference)
