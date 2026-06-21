@@ -59,6 +59,12 @@ Full system wiring diagram: ESP32, load cell + HX711, RTC DS1302, servo motor.
 
 ---
 
+## Hardware Images
+
+![Finished Product](images/finished_product.jpg)
+
+---
+
 ## Data Flow Description
 
 1. **Scheduling** — RTC DS1302 keeps real-time clock data; ESP32 periodically syncs via NTP whenever WiFi is available to keep the time accurate.
