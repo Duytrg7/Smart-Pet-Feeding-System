@@ -51,11 +51,17 @@ flowchart TB
 
 ---
 
-## Hình Ảnh Phần Cứng
+## Hình Ảnh Kết Nối Phần Cứng
 
 ![Sơ đồ đi dây hệ thống](images/hardware_overview.jpg)
 
 Sơ đồ đi dây toàn bộ hệ thống: ESP32, load cell + HX711, RTC DS1302, servo motor.
+
+---
+
+## Sản phẩm đã hoàn thiện
+
+![Finished Product](images/finished_product.jpg)
 
 ---
 
