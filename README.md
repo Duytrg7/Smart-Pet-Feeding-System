@@ -156,9 +156,9 @@ sequenceDiagram
 
 ```
 pet_feeder_web/
-├── README.md              # System overview (this file, English)
-├── README.vi.md            # System overview (Vietnamese)
-├── .firebase/               # Firebase configuration (deploy/hosting)
+├── README.md                 # System overview (this file, English)
+├── README.vi.md              # System overview (Vietnamese)
+├── .firebase/                # Firebase configuration (deploy/hosting)
 ├── firmware/                 # ESP32 firmware (PlatformIO)
 │   ├── src/                  # Module's source code
 │   ├── include/
@@ -166,12 +166,12 @@ pet_feeder_web/
 │   ├── platformio.ini
 │   └── README.md
 ├── web/                      # Web dashboard
-│   └── public
-│       └── 404.html
-│       └── index.html
-│       └── style.css
-│   └── .firebaserc
-│   └── .gitignore
+│   ├── public
+│   │   ├── 404.html
+│   │   ├── index.html
+│   │   └── style.css
+│   ├── .firebaserc
+│   ├── .gitignore
 │   └── firebase.json
 └── images/                   # Hardware images and web dashboard screenshots
     ├── hardware_overview.jpg
