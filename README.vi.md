@@ -182,7 +182,3 @@ pet_feeder_web/
     └── web_interface4.jpg
 ```
 
-
-## Giấy Phép
-
-MIT License (hoặc cập nhật theo lựa chọn của bạn)
