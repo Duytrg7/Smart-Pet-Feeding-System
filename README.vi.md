@@ -51,17 +51,51 @@ flowchart TB
 
 ---
 
-## Hình Ảnh Kết Nối Phần Cứng
+## Hình Ảnh Phần Cứng
 
-![Sơ đồ đi dây hệ thống](images/hardware_overview.jpg)
+<p align="center">
+  <img src="images/hardware_overview.jpg" alt="Hardware Wiring Overview" width="700">
+</p>
 
 Sơ đồ đi dây toàn bộ hệ thống: ESP32, load cell + HX711, RTC DS1302, servo motor.
 
 ---
 
-## Sản phẩm đã hoàn thiện
+## Sản Phẩm Hoàn Thiện
 
-![Finished Product](images/finished_product.jpg)
+<p align="center">
+  <img src="images/finished_product.jpg" alt="Finished Product" width="500">
+</p>
+
+---
+
+## Web Dashboard
+
+Giao diện web được xây dựng bằng Firebase Hosting, cung cấp khả năng giám sát theo thời gian thực, lịch sử cho ăn, cấu hình lịch, và công cụ tính khẩu phần ăn hàng ngày cho thú cưng.
+
+### Giám Sát Theo Thời Gian Thực & Phát Hiện Bất Thường
+
+<img src="images/web_interface1.jpg" alt="Dashboard Monitoring" width="380">
+
+Hiển thị lượng thức ăn còn lại trong khoang chứa, lượng thức ăn hiện có trên khay, và tóm tắt bữa ăn gần nhất (mục tiêu so với lượng thực tế đã xả). Dashboard sẽ cảnh báo khi phát hiện bất thường, ví dụ như chênh lệch giữa lượng thức ăn xả ra và lượng thức ăn tiêu thụ, có thể do cảm biến khay ăn cần hiệu chỉnh lại.
+
+### Lịch Sử Bữa Ăn
+
+<img src="images/web_interface2.jpg" alt="Feeding History" width="380">
+
+Nhật ký theo thời gian của từng lần cho ăn, hiển thị lần cho ăn đó là theo lịch hay thủ công, khẩu phần mục tiêu, lượng đã xả, và lượng thực tế đã ăn.
+
+### Lịch Cho Ăn & Điều Khiển Thủ Công
+
+<img src="images/web_interface3.jpg" alt="Feeding Schedule" width="380">
+
+Cho phép người dùng cấu hình giờ ăn bữa sáng và bữa chiều, lưu lịch xuống thiết bị, và kích hoạt cho ăn thủ công ngay lập tức khi cần.
+
+### Công Cụ Tính Khẩu Phần Ăn
+
+<img src="images/web_interface4.jpg" alt="Diet Calculator" width="380">
+
+Tính toán nhu cầu năng lượng hàng ngày của mèo (RER/MER) dựa trên cân nặng, mục tiêu cân nặng (ví dụ: duy trì cân nặng), và loại thức ăn, sau đó đề xuất khẩu phần ăn cho mỗi bữa. Khẩu phần tính được có thể áp dụng trực tiếp vào lịch cho ăn của thiết bị.
 
 ---
 
@@ -108,6 +142,7 @@ sequenceDiagram
 - Cơ chế cảnh báo khi thức ăn sắp hết
 - Lưu lịch sử cho ăn
 - Web dashboard để giám sát từ xa
+- Công cụ tính khẩu phần ăn cá nhân hóa
 
 ## Phần Cứng Sử Dụng
 
@@ -125,11 +160,11 @@ pet_feeder_web/
 ├── README.vi.md            # Tổng quan hệ thống (file này, Tiếng Việt)
 ├── .firebase/               # Cấu hình Firebase (deploy/hosting)
 ├── firmware/                 # Firmware ESP32 (PlatformIO)
-│   ├── src/                  # Source code các module
+│   ├── src/                  # Mã nguồn các module
 │   ├── include/
 │   ├── lib/
 │   ├── platformio.ini
-│   └── README.md            
+│   └── README.md
 ├── web/                      # Web dashboard
 │   └── public
 │       └── 404.html
@@ -138,6 +173,16 @@ pet_feeder_web/
 │   └── .firebaserc
 │   └── .gitignore
 │   └── firebase.json
-└── images/                   # Hình ảnh phần cứng
-    └── hardware_overview.jpg
+└── images/                   # Hình ảnh phần cứng và screenshot web dashboard
+    ├── hardware_overview.jpg
+    ├── finished_product.jpg
+    ├── web_interface1.jpg
+    ├── web_interface2.jpg
+    ├── web_interface3.jpg
+    └── web_interface4.jpg
 ```
+
+
+## Giấy Phép
+
+MIT License (hoặc cập nhật theo lựa chọn của bạn)
