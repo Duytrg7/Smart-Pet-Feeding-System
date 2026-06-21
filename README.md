@@ -182,13 +182,3 @@ pet_feeder_web/
     └── web_interface4.jpg
 ```
 
-## Getting Started
-
-1. Go to `firmware/README.md` to build and flash the firmware onto the ESP32.
-2. Go to `web/README.md` to run the web dashboard.
-3. Wire the hardware according to the block diagram and wiring image above.
-4. Power on the device — it will sync time via NTP and start operating on the configured schedule.
-
-## License
-
-MIT License (or update according to your preference)
